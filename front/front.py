@@ -1,5 +1,6 @@
 import reflex as rx
 import requests
+import asyncio  # Agregar importación de asyncio
 
 class State(rx.State):
     """El estado de la aplicación para el convertidor de monedas."""
@@ -7,16 +8,20 @@ class State(rx.State):
     to_currency: str = "EUR"
     amount: float = 1.0
     result: float = 0.0
+    is_loading: bool = False
 
-    currencies: list[str] = ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD"]
+    currencies: list[str] = ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD", "COP"]
 
-    def convert(self):
+    async def convert(self):  # Cambiar a función asíncrona
         """Función para realizar la conversión usando el backend de FastAPI."""
         if self.amount <= 0:
             return rx.window_alert("La cantidad debe ser mayor que 0")
 
+        self.is_loading = True
         try:
-            response = requests.get(
+            # Realizar la petición en un hilo separado para no bloquear la UI
+            response = await asyncio.to_thread(
+                requests.get,
                 "http://localhost:8000/convert",
                 params={
                     "from_currency": self.from_currency,
@@ -37,15 +42,35 @@ class State(rx.State):
         except requests.RequestException as e:
             print(f"Error en la petición: {e}")
             self.result = 0
+        finally:
+            self.is_loading = False
+
+    def set_to_currency(self, value):
+        """Actualiza la moneda de destino y resetea el resultado."""
+        self.to_currency = value
+        self.result = 0.0
 
 def index():
-    """La UI principal del convertidor de monedas."""
+    """UI principal del convertidor de monedas."""
     return rx.center(
         rx.box(
+            rx.dialog.root(
+                rx.dialog.content(
+                    rx.center(
+                        rx.spinner(
+                            color="blue.500",
+                            size="3",
+                        ),
+                        padding="8",
+                    ),
+                    show_close_button=False,
+                ),
+                open=rx.cond(State.is_loading, True, False),
+            ),
             rx.vstack(
                 rx.heading(
                     "Convertidor de Monedas",
-                    size="4",  # Cambiado de size="6" a "4"
+                    size="4",
                     color="blue.500",
                     padding_bottom="4",
                 ),
@@ -104,8 +129,8 @@ def index():
                         color="gray.600",
                     ),
                     rx.heading(
-                        f"{State.result}",
-                        size="5",  # Cambiado de "lg" a "5"
+                        f"{State.result}", " ", f"{State.to_currency}",
+                        size="5",
                         color="blue.500",
                     ),
                     padding="4",
@@ -119,6 +144,7 @@ def index():
             border_radius="xl",
             box_shadow="lg",
             width="400px",
+            position="relative",
         ),
         width="100%",
         min_height="100vh",
