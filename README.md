@@ -35,3 +35,5 @@ Currency converter es una aplicación desarrollada con FastAPI que permite visua
 
     ```bash
     uv run reflex run
+
+# RECOMENDADO PRIMERO INICIAR EL BACKEND Y LUEGO EL FRONTEN
