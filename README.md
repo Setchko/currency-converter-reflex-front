@@ -15,7 +15,9 @@ Currency converter es una aplicación desarrollada con FastAPI que permite visua
    Consulta la [documentación de uv](https://github.com/astral-sh/uv) para más detalles.
    
    ```bash
-   uv pip install uv
+   pip install uv
+
+   pipx install uv
 
    (Si ya se instaló, se puede omitir este paso)
 
