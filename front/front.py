@@ -1,6 +1,6 @@
 import reflex as rx
 import requests
-import asyncio  # Agregar importación de asyncio
+import asyncio
 
 class State(rx.State):
     """El estado de la aplicación para el convertidor de monedas."""
@@ -12,14 +12,14 @@ class State(rx.State):
 
     currencies: list[str] = ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD", "COP"]
 
-    async def convert(self):  # Cambiar a función asíncrona
+    async def convert(self): 
         """Función para realizar la conversión usando el backend de FastAPI."""
         if self.amount <= 0:
             return rx.window_alert("La cantidad debe ser mayor que 0")
 
         self.is_loading = True
         try:
-            # Realizar la petición en un hilo separado para no bloquear la UI
+
             response = await asyncio.to_thread(
                 requests.get,
                 "http://localhost:8000/convert",
